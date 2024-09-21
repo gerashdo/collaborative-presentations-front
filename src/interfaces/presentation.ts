@@ -1,7 +1,6 @@
 
-export interface Presentation {
-  id: number
-  title: string
-  creator: string
-  createdAt: string
+export enum AllowedPresentationOrderByFields {
+  title = 'title',
+  creator = 'creator',
+  createdAt = 'createdAt'
 }

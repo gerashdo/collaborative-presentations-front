@@ -21,3 +21,9 @@ export interface LocalStorageUser {
   _id: string
   nickname: string
 }
+
+export enum UserRole {
+  VIEWER = 'viewer',
+  EDITOR = 'editor',
+  CREATOR = 'creator',
+}
