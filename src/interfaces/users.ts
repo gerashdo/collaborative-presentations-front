@@ -1,3 +1,4 @@
+import * as yup from 'yup'
 
 export interface RegisterUserResponse {
   data: Data;
@@ -27,3 +28,9 @@ export enum UserRole {
   EDITOR = 'editor',
   CREATOR = 'creator',
 }
+
+export const registerUserValidationSchema = yup.object().shape({
+  nickname: yup.string().required().min(4, 'Nickname must be at least 4 characters')
+})
+
+export type RegisterFormType = yup.InferType<typeof registerUserValidationSchema>

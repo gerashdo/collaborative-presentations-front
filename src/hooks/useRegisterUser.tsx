@@ -1,33 +1,25 @@
-import { AxiosError } from "axios"
-import { registerUser } from "../api/users"
-import { useContext, useState } from "react"
-import { getRegisterError } from "../helpers/parseResponseErrorMessage"
+import { useContext } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { AuthContext } from "../context/authContext"
+import { registerUser } from "../api/users"
 
 
 export const useRegisterUser = () => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const {loginAction} = useContext(AuthContext)
+  const mutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: (data) => {
+      loginAction({nickname: data.data.data.nickname, _id: data.data.data._id})
+    },
+    onError: (error) => {
+      console.error('Error creating user')
+      console.error(error)
+    }
+  })
 
   const register = async (nickname: string) => {
-    setIsLoading(true)
-    try {
-      const { data } = await registerUser(nickname)
-      console.log({data})
-      loginAction({nickname: data.data.nickname, _id: data.data._id})
-    } catch (error: unknown) {
-      let message = 'An error occurred, please try again later'
-      if (error instanceof AxiosError) {
-        message = getRegisterError(error.response?.status || 500)
-      }
-      setError(message)
-    } finally {
-      setIsLoading(false)
-    }
+    mutation.mutate(nickname)
   }
 
-  const resetError = () => setError(null)
-
-  return { isLoading, error, register, resetError }
+  return {register}
 }
