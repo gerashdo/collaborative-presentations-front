@@ -2,7 +2,7 @@ import axios from "axios"
 import { BASE_URL } from "../constants/api"
 import { AllowedPresentationOrderByFields } from "../interfaces/presentation"
 import { OrderDirection } from "../interfaces/utils"
-import { GetPresentationsResponse } from "../interfaces/api"
+import { GetPresentationsResponse, PostPresentationRequest, PostPresentationResponse } from "../interfaces/api"
 
 
 export const getPresentations = async (
@@ -19,4 +19,9 @@ export const getPresentations = async (
     orderDirection
   })
   return await axios.get<GetPresentationsResponse>(url, { params })
+}
+
+export const createPresentationRequest = async (data: PostPresentationRequest) => {
+  const url = `${BASE_URL}/presentations`
+  return await axios.post<PostPresentationResponse>(url, data)
 }

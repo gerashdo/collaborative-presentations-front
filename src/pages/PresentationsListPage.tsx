@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react'
+import { useLocation } from 'wouter'
 import { Icon } from '@iconify/react'
 import { Button } from '../components/shared/Button'
 import { Pagination } from '../components/shared/Pagination'
@@ -10,12 +11,16 @@ import { SmallButtonIcon } from '../components/shared/SmallButtonIcon'
 import { AuthContext } from '../context/authContext'
 import { useGetPresentations } from '../hooks/useGetPresentations'
 import { useModal } from '../hooks/useModal'
+import { useCreatePresentation } from '../hooks/useCreatePresentation'
+import { getPresentationRoute } from '../helpers/getRoutes'
 
 
 export const PresentationsListPage = () => {
   const {user, logoutAction} = useContext(AuthContext)
+  const [, setLocation] = useLocation()
   const [currentPage, setCurrentPage] = useState(1)
   const {isModalOpen, openModal, closeModal} = useModal()
+  const {createPresentation} = useCreatePresentation()
   const itemsPerPage = 10
   const {data, isError, isLoading} = useGetPresentations(currentPage, itemsPerPage)
   const totalPages = data?.meta.totalPages || 1
@@ -24,14 +29,14 @@ export const PresentationsListPage = () => {
     openModal()
   }
 
-  const handleSubmitNewPresentation = (presentationName: string) => {
-    console.log(`Creating new presentation: ${presentationName}`)
+  const handleSubmitNewPresentation = async (presentationName: string) => {
+    await createPresentation({title: presentationName, creatorId: user?._id || ''})
     closeModal()
   }
 
   const handleJoinPresentation = (id: string) => {
-    // Implement join presentation logic here
-    console.log(`Joining presentation ${id}`)
+    const presentationRoute = getPresentationRoute(id)
+    setLocation(presentationRoute)
   }
 
   const onNextPage = () => {
