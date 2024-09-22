@@ -1,59 +1,76 @@
-import { useState } from 'react'
-import { useLocation } from 'wouter'
+import { useContext, useEffect, useState } from 'react'
+import { useLocation, useParams } from 'wouter'
 import { PresentationNavbar } from '../components/presentation/PresentationNavbar'
 import { ConnectedUsersSidebar } from '../components/presentation/ConnectedUsersSidebar'
 import { SlidesSidebar } from '../components/presentation/SlidesSidebar'
 import { DrowToolsBar } from '../components/presentation/DrowToolsBar'
-import { ROUTES } from '../constants/routes'
+import { Loader } from '../components/shared/Loader'
+import { AuthContext } from '../context/authContext'
+import { useGetPresentation } from '../hooks/useGetPresentation'
 import { UserRole } from '../interfaces/users'
+import { Slide } from '../interfaces/api'
+import { ROUTES } from '../constants/routes'
 
-
-const mockSlides = [
-  { id: 1, content: "# Slide 1\n\nThis is the first slide." },
-  { id: 2, content: "# Slide 2\n\nThis is the second slide." },
-]
-
-const mockUsers = [
-  { id: 1, name: "Alice", role: UserRole.CREATOR },
-  { id: 2, name: "Bob", role: UserRole.EDITOR },
-  { id: 3, name: "Charlie", role: UserRole.VIEWER },
-]
 
 export const PresentationPage = () => {
+  const {user: currentUser} = useContext(AuthContext)
+  const { id } = useParams()
   const [, setLocation] = useLocation()
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [slides, setSlides] = useState(mockSlides)
-  const [users, setUsers] = useState(mockUsers)
-  const [isCreator] = useState(true) // Mock creator status
+  const {data, isError, isLoading} = useGetPresentation(id)
+  const [currentSlide, setCurrentSlide] = useState<Slide | null>(null)
+  const [isCreator, setIsCreator] = useState(false)
+  const [isEditor, setIsEditor] = useState(false)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!data) return
+    if (data.data.slides.length === 0) return
+    setCurrentSlide(data.data.slides[0])
+  }, [data])
+
+  useEffect(() => {
+    if (!data) return
+    if (!currentUser) return
+    if (data.data.creator._id === currentUser._id) setIsCreator(true)
+  }, [data, currentUser])
+
+  useEffect(() => {
+    if (!data) return
+    if (!currentUser) return
+    if (isCreator) return setIsEditor(true)
+    const user = data.data.users.find(user => user._id === currentUser._id)
+    if (user && user.role === UserRole.EDITOR) setIsEditor(true)
+  }, [data, currentUser, isCreator])
+
+  if (isLoading) {
+    return <Loader/>
+  }
 
   const handleBack = () => {
     setLocation(ROUTES.PRESENTATION_LIST)
   }
 
-  const handleAddSlide = () => {
-    setSlides([...slides, { id: slides.length + 1, content: "# New Slide" }])
-  }
-
-  const handleDeleteSlide = (index: number) => {
-    const newSlides = slides.filter((_, i) => i !== index)
-    setSlides(newSlides)
-    if (currentSlide >= newSlides.length) {
-      setCurrentSlide(newSlides.length - 1)
+  const handleSetCurrentSlide = (id: string) => {
+    const slide = data?.data.slides.find(slide => slide._id === id)
+    if (slide) {
+      setCurrentSlide(slide)
     }
   }
 
-  const handleEditSlide = (index: number, content: string) => {
-    const newSlides = [...slides]
-    newSlides[index].content = content
-    setSlides(newSlides)
+  const handleAddSlide = () => {
+    console.log('Add slide')
   }
 
-  const handleChangeUserRole = (userId: number, newRole: UserRole) => {
-    const newUsers = users.map(user =>
-      user.id === userId ? { ...user, role: newRole } : user
-    )
-    setUsers(newUsers)
+  const handleDeleteSlide = (id: string) => {
+    console.log('Delete slide:', id)
+  }
+
+  const handleEditSlide = (id: string, content: string) => {
+    console.log('edit slide', id, content)
+  }
+
+  const handleChangeUserRole = (userId: string, newRole: UserRole) => {
+    console.log('Change user role:', userId, newRole)
   }
 
   const handleSelectTool = (tool: string) => {
@@ -68,35 +85,41 @@ export const PresentationPage = () => {
         handleAddSlide={handleAddSlide}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        <SlidesSidebar
-          slides={slides}
-          currentSlide={currentSlide}
-          setCurrentSlide={setCurrentSlide}
-          isCreator={isCreator}
-          handleDeleteSlide={handleDeleteSlide}
-        />
+      { !isLoading && !isError && data && (
+        <div className="flex flex-1 overflow-hidden">
+          <SlidesSidebar
+            slides={data.data.slides}
+            currentSlide={currentSlide}
+            onSetCurrentSlide={handleSetCurrentSlide}
+            isCreator={isCreator}
+            onDeleteSlide={handleDeleteSlide}
+          />
 
-        <main className="flex-1 p-4 overflow-auto">
-          <DrowToolsBar onSelectTool={handleSelectTool} />
-          <div className="bg-white aspect-video shadow-lg p-8">
-            {slides[currentSlide] && (
-              <textarea
-                value={slides[currentSlide].content}
-                onChange={(e) => handleEditSlide(currentSlide, e.target.value)}
-                className="w-full h-full resize-none border-none focus:outline-none focus:ring-0"
-                placeholder="Enter your slide content here..."
-              />
+          <main className="flex-1 p-4 overflow-auto">
+            {isEditor && (
+              <DrowToolsBar onSelectTool={handleSelectTool} />
             )}
-          </div>
-        </main>
+            <div className="bg-white aspect-video shadow-lg p-8">
+              {currentSlide && (
+                <textarea
+                  value={currentSlide?.content}
+                  onChange={(e) => handleEditSlide(currentSlide._id, e.target.value)}
+                  className="w-full h-full resize-none border-none focus:outline-none focus:ring-0"
+                  placeholder="Enter your slide content here..."
+                />
+              )}
+            </div>
+          </main>
 
-        <ConnectedUsersSidebar
-          users={users}
-          isCurrentUserCreator={isCreator}
-          onRoleChanged={handleChangeUserRole}
-        />
-      </div>
+          {isCreator && (
+            <ConnectedUsersSidebar
+              users={data.data.users}
+              onRoleChanged={handleChangeUserRole}
+            />
+          )}
+        </div>
+      )}
+
     </div>
   )
 }

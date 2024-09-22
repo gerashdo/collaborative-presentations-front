@@ -4,6 +4,21 @@ export interface PostPresentationRequest {
   creatorId: string
 }
 
+export interface PostPresentationResponse {
+  data: PresentationDataResponse;
+}
+
+export interface PresentationDataResponse {
+  title:       string;
+  description: string;
+  slides:      string[];
+  users:       User[];
+  creator:     string;
+  _id:         string;
+  createdAt:   Date;
+  updatedAt:   Date;
+}
+
 export interface GetPresentationsResponse {
   data: GetPresentationsData[];
   meta: GetPresentationsMetaData;
@@ -40,17 +55,31 @@ export interface GetPresentationsMetaData {
   pageSize:           number
 }
 
-export interface PostPresentationResponse {
-  data: PresentationDataResponse;
+export interface GetPresentationResponse {
+  data: GetPresentationData;
 }
 
-export interface PresentationDataResponse {
+export interface GetPresentationData {
+  _id:         string;
   title:       string;
   description: string;
-  slides:      string[];
-  users:       User[];
-  creator:     string;
-  _id:         string;
+  slides:      Slide[];
+  users:       UserRoleData[];
+  creator:     Creator;
   createdAt:   Date;
   updatedAt:   Date;
+}
+
+export interface Slide {
+  _id:       string;
+  content:   string;
+  elements:  any[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserRoleData{
+  user: Creator;
+  role: string;
+  _id:  string;
 }

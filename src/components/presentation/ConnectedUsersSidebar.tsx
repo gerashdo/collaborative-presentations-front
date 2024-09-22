@@ -1,22 +1,21 @@
 import { Icon } from "@iconify/react/dist/iconify.js"
-import { UserRole } from "../../interfaces/users"
 import { useEffect, useRef, useState } from "react"
 import { toTitleCase } from "../../helpers/strings"
 import { SmallButtonIcon } from "../shared/SmallButtonIcon"
+import { UserRole } from "../../interfaces/users"
+import { UserRoleData } from "../../interfaces/api"
 
 
 interface ConnectedUsersSidebarProps {
-  users: any[]
-  isCurrentUserCreator: boolean
-  onRoleChanged: (userId: number, role: UserRole) => void
+  users: UserRoleData[]
+  onRoleChanged: (userId: string, role: UserRole) => void
 }
 
 export const ConnectedUsersSidebar = ({
   users,
-  isCurrentUserCreator,
   onRoleChanged,
 }: ConnectedUsersSidebarProps) => {
-  const [selectedUser, setSelectedUser] = useState<number | null>(null)
+  const [selectedUser, setSelectedUser] = useState<UserRoleData | null>(null)
   const popupRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -32,7 +31,7 @@ export const ConnectedUsersSidebar = ({
     }
   }, [])
 
-  const handleSetRole = (userId: number, role: UserRole) => {
+  const handleSetRole = (userId: string, role: UserRole) => {
     onRoleChanged(userId, role)
     setSelectedUser(null)
   }
@@ -44,20 +43,18 @@ export const ConnectedUsersSidebar = ({
         Connected Users
       </h3>
       {users.map((user) => (
-        <div key={user.id} className="flex items-center justify-between mb-2 relative">
-          <span>{user.name}</span>
-          {isCurrentUserCreator && user.role !== "Creator" && (
-            <SmallButtonIcon
-              onClick={() => setSelectedUser(selectedUser === user.id ? null : user.id)}
-              icon={user.role === UserRole.EDITOR ? "mdi:rename" : "mdi:eye"}
-            />
-          )}
-          {selectedUser === user.id && (
+        <div key={user._id} className="flex items-center justify-between mb-2 relative">
+          <span>{user.user.nickname}</span>
+          <SmallButtonIcon
+            onClick={() => setSelectedUser(selectedUser?._id === user._id ? null : user)}
+            icon={user.role === UserRole.EDITOR ? "mdi:rename" : "mdi:eye"}
+          />
+          {selectedUser?._id === user._id && (
             <div ref={popupRef} className="absolute right-0 bottom-0 translate-y-full mt-2 bg-white shadow-lg rounded-md p-2 z-10">
               {Object.values(UserRole).map((role) => (
                 <button
                   key={role}
-                  onClick={() => handleSetRole(user.id, role)}
+                  onClick={() => handleSetRole(user._id, role)}
                   className="block w-full text-left px-2 py-1 hover:bg-gray-100 rounded"
                 >
                   {toTitleCase(role)}

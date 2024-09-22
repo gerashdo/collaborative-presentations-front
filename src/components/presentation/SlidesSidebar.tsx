@@ -1,30 +1,31 @@
+import { Slide } from "../../interfaces/api"
 import { SmallButtonIcon } from "../shared/SmallButtonIcon"
 
 
 interface SlidesSidebarProps {
-  slides: any[]
-  currentSlide: number
-  setCurrentSlide: (index: number) => void
+  slides: Slide[]
+  currentSlide: Slide | null
+  onSetCurrentSlide: (id: string) => void
   isCreator: boolean
-  handleDeleteSlide: (index: number) => void
+  onDeleteSlide: (id: string) => void
 }
 
 export const SlidesSidebar = ({
   slides,
   currentSlide,
-  setCurrentSlide,
+  onSetCurrentSlide,
   isCreator,
-  handleDeleteSlide,
+  onDeleteSlide,
 }: SlidesSidebarProps) => {
   return (
     <section className="w-64 bg-gray-200 p-4 overflow-y-auto">
       {slides.map((slide, index) => (
         <div
-          key={slide.id}
+          key={slide._id}
           className={`p-2 mb-2 bg-white rounded cursor-pointer ${
-            index === currentSlide ? 'ring-2 ring-indigo-500' : ''
+            slide._id === currentSlide?._id ? 'ring-2 ring-indigo-500' : ''
           }`}
-          onClick={() => setCurrentSlide(index)}
+          onClick={() => onSetCurrentSlide(slide._id)}
         >
           <p className="font-bold">Slide {index + 1}</p>
           {isCreator && (
@@ -32,7 +33,7 @@ export const SlidesSidebar = ({
               <SmallButtonIcon
                 type="button"
                 onClick={() => {
-                  handleDeleteSlide(index)
+                  onDeleteSlide(slide._id)
                 }}
                 icon="mdi:trash-can"
               />
