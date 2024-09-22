@@ -1,14 +1,18 @@
+import { useLocation } from "wouter"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { AxiosError } from "axios"
+import { useDisplayToastMessage } from "./useDisplayToast"
 import { createPresentationRequest } from "../api/presentations"
 import { PostPresentationRequest } from "../interfaces/api"
-import { useLocation } from "wouter"
 import { getPresentationRoute } from "../helpers/getRoutes"
+import { getCreatePresentationError } from "../helpers/parseResponseErrorMessage"
 
 //TODO: Get current page to invalid query cache
 
 export const useCreatePresentation = () => {
   const [, setLocation ] = useLocation()
   const queryClient = useQueryClient()
+  const {displayMessage} = useDisplayToastMessage()
   const mutation = useMutation({
     mutationFn: createPresentationRequest,
     onSuccess: (data) => {
@@ -17,9 +21,9 @@ export const useCreatePresentation = () => {
       const route = getPresentationRoute(data.data.data._id)
       setLocation(route)
     },
-    onError: (error) => {
-      console.error('Error creating presentation')
-      console.error(error)
+    onError: (error: AxiosError) => {
+      const errorMessage = getCreatePresentationError(error.response?.status || 500)
+      displayMessage(errorMessage, 'error')
     }
   })
 
