@@ -1,24 +1,27 @@
 
-interface InputProps {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   value: string
   error?: string
-  placeholder?: string
-  required?: boolean
+  label?: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const Input = ({
   value,
   error,
-  placeholder,
-  required,
-  onChange
+  label,
+  onChange,
+  ...props
 }: InputProps) => {
   return(
     <>
+      {label && (
+        <label htmlFor={props.id} className="block text-sm font-medium text-gray-700 mb-2">
+          {label}
+        </label>
+      )}
       <input
-        type="text"
-        id="nickname"
+        {...props}
         value={value}
         onChange={onChange}
         className={`block w-full px-4 py-3 text-gray-700 bg-white border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ease-in-out ${
@@ -26,8 +29,7 @@ export const Input = ({
             ? 'border-red-500 focus:ring-red-500'
             : 'border-gray-300 focus:ring-indigo-500 focus:border-transparent'
         }`}
-        placeholder={placeholder}
-        required={required}
+        {...props}
       />
       {error && (
         <p className="mt-2 text-sm text-red-600 transition-all duration-300 ease-in-out">

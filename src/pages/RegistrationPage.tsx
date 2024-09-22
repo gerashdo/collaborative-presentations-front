@@ -18,9 +18,6 @@ export const RegistrationPage = () => {
       setError('Nickname must be at least 3 characters long')
     } else {
       setError('')
-      // Here you would typically save the nickname to your app's state or context
-      // For this example, we'll just navigate to a hypothetical next page
-      // router.push('/presentation-lobby')
       register(nickname)
     }
   }
@@ -41,11 +38,12 @@ export const RegistrationPage = () => {
             Let's get started
           </h2>
           <Input
+            type="text"
             value={nickname}
             error={error}
+            onChange={handleInputChange}
             placeholder="Enter your nickname"
             required
-            onChange={handleInputChange}
           />
           <div className="flex items-center justify-center">
             <Button

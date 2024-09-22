@@ -1,23 +1,32 @@
 import { useContext, useState } from 'react'
 import { Icon } from '@iconify/react'
-import { AuthContext } from '../context/authContext'
 import { Button } from '../components/shared/Button'
 import { Pagination } from '../components/shared/Pagination'
 import { PresentationsNavbar } from '../components/presentations/PresentationsNavbar'
 import { PresentationListItem } from '../components/presentations/PresentationListItem'
+import { Modal } from '../components/shared/Modal'
+import { NewPresentationForm } from '../components/presentations/NewPresentationForm'
+import { SmallButtonIcon } from '../components/shared/SmallButtonIcon'
+import { AuthContext } from '../context/authContext'
 import { useGetPresentations } from '../hooks/useGetPresentations'
+import { useModal } from '../hooks/useModal'
 
 
 export const PresentationsListPage = () => {
   const {user, logoutAction} = useContext(AuthContext)
   const [currentPage, setCurrentPage] = useState(1)
+  const {isModalOpen, openModal, closeModal} = useModal()
   const itemsPerPage = 10
   const {data, isError, isLoading} = useGetPresentations(currentPage, itemsPerPage)
   const totalPages = data?.meta.totalPages || 1
 
   const handleCreatePresentation = () => {
-    // Implement create presentation logic here
-    console.log("Creating new presentation")
+    openModal()
+  }
+
+  const handleSubmitNewPresentation = (presentationName: string) => {
+    console.log(`Creating new presentation: ${presentationName}`)
+    closeModal()
   }
 
   const handleJoinPresentation = (id: string) => {
@@ -72,6 +81,15 @@ export const PresentationsListPage = () => {
           }
         </div>
       </div>
+      {isModalOpen && (
+        <Modal>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Create new presentation</h3>
+            <SmallButtonIcon onClick={closeModal} icon="mdi:close" />
+          </div>
+          <NewPresentationForm onSubmit={handleSubmitNewPresentation} />
+        </Modal>
+      )}
     </div>
   )
 }
