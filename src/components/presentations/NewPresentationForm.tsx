@@ -1,6 +1,8 @@
-import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
 import { Button } from "../shared/Button"
 import { Input } from "../shared/Input"
+import { PresentationForm, validationSchema } from "../../interfaces/presentation"
 
 
 interface NewPresentationFormProps {
@@ -8,20 +10,23 @@ interface NewPresentationFormProps {
 }
 
 export const NewPresentationForm = ({onSubmit}: NewPresentationFormProps) => {
-  const [newPresentationName, setNewPresentationName] = useState('')
-  const handleSubmitNewPresentation = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(newPresentationName)
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<PresentationForm>({
+    resolver: yupResolver(validationSchema)
+  })
+
+  const onSubmitHandler = (data: PresentationForm) => {
+    onSubmit(data.title)
+    reset()
   }
 
   return (
-    <form onSubmit={handleSubmitNewPresentation}>
+    <form onSubmit={handleSubmit(onSubmitHandler)}>
       <div className="mb-4">
         <Input
           type="text"
-          id="presentationName"
-          value={newPresentationName}
-          onChange={(e) => setNewPresentationName(e.target.value)}
+          id="title"
+          {...register('title')}
+          error={errors.title?.message}
           placeholder="Enter name for the presentation"
           required
         />
