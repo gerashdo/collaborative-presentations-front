@@ -12,6 +12,7 @@ import { useActualPresentationState } from '../hooks/useActualPresentationState'
 import { useDisplayToastMessage } from '../hooks/useDisplayToast'
 import { UserRole } from '../interfaces/users'
 import { ROUTES } from '../constants/routes'
+import { DROWING_TOOLS } from '../constants/presetation'
 
 
 export const PresentationPage = () => {
@@ -36,7 +37,7 @@ export const PresentationPage = () => {
     addNewSlide,
     removeSlideFromPresentation,
   } = useContext(SocketContext)
-  const [selectedTool, setSelectedTool] = useState<string | null>(null)
+  const [selectedTool, setSelectedTool] = useState<DROWING_TOOLS | null>(null)
   const {displayMessage} = useDisplayToastMessage()
 
   useEffect(() => {
@@ -84,8 +85,8 @@ export const PresentationPage = () => {
     updateUserRole(actualPresentation._id, userId, newRole)
   }
 
-  const handleSelectTool = (tool: string) => {
-    setSelectedTool(tool === selectedTool ? null : tool)
+  const handleSelectTool = (tool: DROWING_TOOLS | null) => {
+    setSelectedTool(tool)
   }
 
   return (
