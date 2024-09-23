@@ -34,6 +34,7 @@ export const PresentationPage = () => {
     leavePresentation,
     updateUserRole,
     addNewSlide,
+    removeSlideFromPresentation,
   } = useContext(SocketContext)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
   const {displayMessage} = useDisplayToastMessage()
@@ -65,7 +66,8 @@ export const PresentationPage = () => {
   }
 
   const handleDeleteSlide = (id: string) => {
-    console.log('Delete slide:', id)
+    if (!actualPresentation) return
+    removeSlideFromPresentation(actualPresentation._id, id)
   }
 
   const handleEditSlide = (id: string, content: string) => {

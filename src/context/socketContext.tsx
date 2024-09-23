@@ -1,7 +1,7 @@
 import { createContext, useEffect, useRef } from "react"
 import { Socket } from "socket.io-client"
 import { useActualPresentationStateManager } from '../hooks/useActualPresentationStateManager'
-import { SlideAddedPayload, UpdateUserRolePayload, UserJoinedPayload, UserLeftPayload } from "../interfaces/events"
+import { SlideAddedPayload, SlideRemovedPayload, UpdateUserRolePayload, UserJoinedPayload, UserLeftPayload } from "../interfaces/events"
 import { SOCKET_EVENTS } from "../constants/events"
 import { UserRole } from "../interfaces/users"
 import { socket } from "../helpers/socket"
@@ -15,6 +15,7 @@ type SocketContextType = {
   leavePresentation: (presentationId: string, userId: string) => void
   updateUserRole: (presentationId: string, userId: string, newRole: UserRole) => void
   addNewSlide: (presentationId: string) => void
+  removeSlideFromPresentation: (presentationId: string, slideId: string) => void
 }
 
 export const SocketContext = createContext<SocketContextType>({
@@ -25,6 +26,7 @@ export const SocketContext = createContext<SocketContextType>({
   leavePresentation: () => {},
   updateUserRole: () => {},
   addNewSlide: () => {},
+  removeSlideFromPresentation: () => {},
 })
 
 type SocketProviderProps = {
@@ -49,7 +51,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
       updateUsersList(data.presentation.users)
     })
     return () => {
-      socketValue.off('user_joiner')
+      socketValue.off(SOCKET_EVENTS.USER_JOINED)
     }
   }, [updateUsersList])
 
@@ -59,7 +61,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
       updateUsersList(data.presentation.users)
     })
     return () => {
-      socketValue.off('user_left')
+      socketValue.off(SOCKET_EVENTS.USER_LEFT)
     }
   }, [updateUsersList])
 
@@ -69,7 +71,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
       updateUsersList(data.presentation.users)
     })
     return () => {
-      socketValue.off('user_role_updated')
+      socketValue.off(SOCKET_EVENTS.USER_ROLE_UPDATED)
     }
   }, [updateUsersList])
 
@@ -79,9 +81,19 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
       updateSlidesList(data.presentation.slides)
     })
     return () => {
-      socketValue.off('slide_added')
+      socketValue.off(SOCKET_EVENTS.SLIDE_ADDED)
     }
-  })
+  }, [updateSlidesList])
+
+  useEffect(() => {
+    const socketValue = socketRef.current
+    socketRef.current.on(SOCKET_EVENTS.SLIDE_REMOVED, (data: SlideRemovedPayload) => {
+      updateSlidesList(data.presentation.slides)
+    })
+    return () => {
+      socketValue.off(SOCKET_EVENTS.SLIDE_REMOVED)
+    }
+  }, [updateSlidesList])
 
   const connectSocket = () => {
     if (socketRef.current.connected) return
@@ -114,6 +126,11 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     socket.emit(SOCKET_EVENTS.ADD_SLIDE, { presentationId })
   }
 
+  const removeSlideFromPresentation = (presentationId: string, slideId: string) => {
+    if (!socket) return
+    socket.emit(SOCKET_EVENTS.REMOVE_SLIDE, { presentationId, slideId })
+  }
+
   return (
     <SocketContext.Provider value={{
       socket: socketRef.current,
@@ -123,6 +140,7 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
       leavePresentation,
       updateUserRole,
       addNewSlide,
+      removeSlideFromPresentation,
     }}>
       {children}
     </SocketContext.Provider>

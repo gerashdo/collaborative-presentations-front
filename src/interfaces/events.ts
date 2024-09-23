@@ -15,6 +15,10 @@ export interface SlideAddedPayload {
   presentation: PresentationUserJoinedData
 }
 
+export interface SlideRemovedPayload {
+  presentation: PresentationUserJoinedData
+}
+
 export interface PresentationUserLeftData {
   _id:       string;
   title:     string;

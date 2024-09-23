@@ -7,6 +7,8 @@ export enum SOCKET_EVENTS {
   USER_ROLE_UPDATED = 'user_role_updated',
   ADD_SLIDE = 'add_slide',
   SLIDE_ADDED = 'slide_added',
+  REMOVE_SLIDE = 'remove_slide',
+  SLIDE_REMOVED = 'slide_removed',
   DISCONNECT = 'disconnect',
   ERROR = 'error',
 }
