@@ -1,6 +1,7 @@
 import { useSetRecoilState } from "recoil"
 import { actualPresentationState } from "../state/actualPresentation"
 import { UserRoleData } from "../interfaces/api"
+import { Slide } from "../interfaces/events"
 
 
 export const useActualPresentationStateManager = () => {
@@ -16,5 +17,18 @@ export const useActualPresentationStateManager = () => {
     })
   }
 
-  return {updateUsersList}
+  const updateSlidesList = (slides: Slide[]) => {
+    setActualPresentation((oldData) => {
+      if (!oldData) return null
+      return {
+        ...oldData,
+        slides
+      }
+    })
+  }
+
+  return {
+    updateUsersList,
+    updateSlidesList,
+  }
 }

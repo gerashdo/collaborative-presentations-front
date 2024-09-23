@@ -11,6 +11,10 @@ export interface UpdateUserRolePayload {
   presentation: PresentationUserJoinedData
 }
 
+export interface SlideAddedPayload {
+  presentation: PresentationUserJoinedData
+}
+
 export interface PresentationUserLeftData {
   _id:       string;
   title:     string;

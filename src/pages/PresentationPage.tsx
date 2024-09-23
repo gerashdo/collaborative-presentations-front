@@ -32,7 +32,8 @@ export const PresentationPage = () => {
   const {
     joinPresentation,
     leavePresentation,
-    updateUserRole
+    updateUserRole,
+    addNewSlide,
   } = useContext(SocketContext)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
   const {displayMessage} = useDisplayToastMessage()
@@ -59,7 +60,8 @@ export const PresentationPage = () => {
   }
 
   const handleAddSlide = () => {
-    console.log('Add slide')
+    if (!actualPresentation) return
+    addNewSlide(actualPresentation._id)
   }
 
   const handleDeleteSlide = (id: string) => {
@@ -126,7 +128,6 @@ export const PresentationPage = () => {
           )}
         </div>
       )}
-
     </div>
   )
 }
