@@ -54,7 +54,7 @@ export const ConnectedUsersSidebar = ({
               {Object.values(UserRole).map((role) => (
                 <button
                   key={role}
-                  onClick={() => handleSetRole(user._id, role)}
+                  onClick={() => handleSetRole(user.user._id, role)}
                   className="block w-full text-left px-2 py-1 hover:bg-gray-100 rounded"
                 >
                   {toTitleCase(role)}

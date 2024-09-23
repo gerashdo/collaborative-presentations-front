@@ -7,6 +7,10 @@ export interface UserLeftPayload {
   presentation: PresentationUserJoinedData
 }
 
+export interface UpdateUserRolePayload {
+  presentation: PresentationUserJoinedData
+}
+
 export interface PresentationUserLeftData {
   _id:       string;
   title:     string;

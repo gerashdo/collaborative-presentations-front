@@ -2,8 +2,9 @@ import { createContext, useEffect, useRef } from "react"
 import { Socket } from "socket.io-client"
 import { useActualPresentationStateManager } from '../hooks/useActualPresentationStateManager'
 import { socket } from "../helpers/socket"
-import { UserJoinedPayload, UserLeftPayload } from "../interfaces/events"
+import { UpdateUserRolePayload, UserJoinedPayload, UserLeftPayload } from "../interfaces/events"
 import { SOCKET_EVENTS } from "../constants/events"
+import { UserRole } from "../interfaces/users"
 
 
 type SocketContextType = {
@@ -12,6 +13,7 @@ type SocketContextType = {
   disconnectSocket: () => void
   joinPresentation: (presentationId: string, userId: string) => void
   leavePresentation: (presentationId: string, userId: string) => void
+  updateUserRole: (presentationId: string, userId: string, newRole: UserRole) => void
 }
 
 export const SocketContext = createContext<SocketContextType>({
@@ -19,7 +21,8 @@ export const SocketContext = createContext<SocketContextType>({
   disconnectSocket: () => {},
   connectSocket: () => {},
   joinPresentation: () => {},
-  leavePresentation: () => {}
+  leavePresentation: () => {},
+  updateUserRole: () => {},
 })
 
 type SocketProviderProps = {
@@ -58,6 +61,16 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     }
   }, [updateUsersList])
 
+  useEffect(() => {
+    const socketValue = socketRef.current
+    socketRef.current.on(SOCKET_EVENTS.USER_ROLE_UPDATED, (data: UpdateUserRolePayload) => {
+      updateUsersList(data.presentation.users)
+    })
+    return () => {
+      socketValue.off('user_role_updated')
+    }
+  }, [updateUsersList])
+
   const connectSocket = () => {
     if (socketRef.current.connected) return
     socketRef.current.connect()
@@ -78,13 +91,20 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     socket.emit(SOCKET_EVENTS.LEAVE_PRESENTATION, { presentationId, userId })
   }
 
+  const updateUserRole = (presentationId: string, userId: string, role: UserRole) => {
+    if (!socket) return
+    console.log('updateUserRoleSocket', presentationId, userId, role)
+    socket.emit(SOCKET_EVENTS.UPDATE_USER_ROLE, { presentationId, userId, role })
+  }
+
   return (
     <SocketContext.Provider value={{
       socket: socketRef.current,
       connectSocket,
       disconnectSocket,
       joinPresentation,
-      leavePresentation
+      leavePresentation,
+      updateUserRole
     }}>
       {children}
     </SocketContext.Provider>

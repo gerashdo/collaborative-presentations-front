@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react"
 import { useRecoilState } from "recoil"
 import { actualPresentationState } from "../state/actualPresentation"
 import { GetPresentationData, Slide } from "../interfaces/api"
-import { useEffect, useState } from "react"
-import { LocalStorageUser, UserRole } from "../interfaces/users"
+import { LocalStorageUser } from "../interfaces/users"
+import { isUserEditor } from "../helpers/users"
 
 
 export const useActualPresentationState = (
@@ -36,8 +37,8 @@ export const useActualPresentationState = (
     if (!actualPresentation) return
     if (!currentUser) return
     if (isCreator) return setIsEditor(true)
-    const user = actualPresentation.users.find(user => user._id === currentUser._id)
-    if (user && user.role === UserRole.EDITOR) setIsEditor(true)
+    const isEditor = isUserEditor(actualPresentation, currentUser)
+    setIsEditor(isEditor || false)
   }, [actualPresentation, currentUser, isCreator])
 
   const handleSetCurrentSlide = (id: string) => {

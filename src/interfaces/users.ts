@@ -26,7 +26,6 @@ export interface LocalStorageUser {
 export enum UserRole {
   VIEWER = 'viewer',
   EDITOR = 'editor',
-  CREATOR = 'creator',
 }
 
 export const registerUserValidationSchema = yup.object().shape({

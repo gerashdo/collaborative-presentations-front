@@ -9,6 +9,7 @@ import { AuthContext } from '../context/authContext'
 import { SocketContext } from '../context/socketContext'
 import { useGetPresentation } from '../hooks/useGetPresentation'
 import { useActualPresentationState } from '../hooks/useActualPresentationState'
+import { useDisplayToastMessage } from '../hooks/useDisplayToast'
 import { UserRole } from '../interfaces/users'
 import { ROUTES } from '../constants/routes'
 
@@ -28,8 +29,13 @@ export const PresentationPage = () => {
     data ? data.data : null,
     currentUser,
   )
-  const {joinPresentation, leavePresentation} = useContext(SocketContext)
+  const {
+    joinPresentation,
+    leavePresentation,
+    updateUserRole
+  } = useContext(SocketContext)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
+  const {displayMessage} = useDisplayToastMessage()
 
   useEffect(() => {
     if (currentUser && id) {
@@ -66,6 +72,12 @@ export const PresentationPage = () => {
 
   const handleChangeUserRole = (userId: string, newRole: UserRole) => {
     console.log('Change user role:', userId, newRole)
+    if (!actualPresentation) return
+    if (actualPresentation.creator._id === userId){
+      displayMessage('Cannot change the role of the presentation creator', 'error')
+      return
+    }
+    updateUserRole(actualPresentation._id, userId, newRole)
   }
 
   const handleSelectTool = (tool: string) => {
