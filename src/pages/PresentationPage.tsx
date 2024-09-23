@@ -6,41 +6,43 @@ import { SlidesSidebar } from '../components/presentation/SlidesSidebar'
 import { DrowToolsBar } from '../components/presentation/DrowToolsBar'
 import { Loader } from '../components/shared/Loader'
 import { AuthContext } from '../context/authContext'
+import { SocketContext } from '../context/socketContext'
 import { useGetPresentation } from '../hooks/useGetPresentation'
+import { useActualPresentationState } from '../hooks/useActualPresentationState'
 import { UserRole } from '../interfaces/users'
-import { Slide } from '../interfaces/api'
 import { ROUTES } from '../constants/routes'
 
 
 export const PresentationPage = () => {
-  const {user: currentUser} = useContext(AuthContext)
   const { id } = useParams()
+  const {user: currentUser} = useContext(AuthContext)
   const [, setLocation] = useLocation()
   const {data, isError, isLoading} = useGetPresentation(id)
-  const [currentSlide, setCurrentSlide] = useState<Slide | null>(null)
-  const [isCreator, setIsCreator] = useState(false)
-  const [isEditor, setIsEditor] = useState(false)
+  const {
+    actualPresentation,
+    isCreator,
+    isEditor,
+    currentSlide,
+    handleSetCurrentSlide,
+  } = useActualPresentationState(
+    data ? data.data : null,
+    currentUser,
+  )
+  const {joinPresentation, leavePresentation} = useContext(SocketContext)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!data) return
-    if (data.data.slides.length === 0) return
-    setCurrentSlide(data.data.slides[0])
-  }, [data])
-
-  useEffect(() => {
-    if (!data) return
-    if (!currentUser) return
-    if (data.data.creator._id === currentUser._id) setIsCreator(true)
-  }, [data, currentUser])
-
-  useEffect(() => {
-    if (!data) return
-    if (!currentUser) return
-    if (isCreator) return setIsEditor(true)
-    const user = data.data.users.find(user => user._id === currentUser._id)
-    if (user && user.role === UserRole.EDITOR) setIsEditor(true)
-  }, [data, currentUser, isCreator])
+    if (currentUser && id) {
+      console.log('Joining presentation:', id)
+      joinPresentation(id, currentUser._id)
+    }
+    return () => {
+      if (currentUser && id) {
+        console.log('Leaving presentation:', id)
+        leavePresentation(id, currentUser._id)
+      }
+    }
+  }, [])
 
   if (isLoading) {
     return <Loader/>
@@ -48,13 +50,6 @@ export const PresentationPage = () => {
 
   const handleBack = () => {
     setLocation(ROUTES.PRESENTATION_LIST)
-  }
-
-  const handleSetCurrentSlide = (id: string) => {
-    const slide = data?.data.slides.find(slide => slide._id === id)
-    if (slide) {
-      setCurrentSlide(slide)
-    }
   }
 
   const handleAddSlide = () => {
@@ -85,10 +80,10 @@ export const PresentationPage = () => {
         handleAddSlide={handleAddSlide}
       />
 
-      { !isLoading && !isError && data && (
+      { !isLoading && !isError && actualPresentation && (
         <div className="flex flex-1 overflow-hidden">
           <SlidesSidebar
-            slides={data.data.slides}
+            slides={actualPresentation.slides}
             currentSlide={currentSlide}
             onSetCurrentSlide={handleSetCurrentSlide}
             isCreator={isCreator}
@@ -113,7 +108,7 @@ export const PresentationPage = () => {
 
           {isCreator && (
             <ConnectedUsersSidebar
-              users={data.data.users}
+              users={actualPresentation.users}
               onRoleChanged={handleChangeUserRole}
             />
           )}

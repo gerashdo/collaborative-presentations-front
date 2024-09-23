@@ -1,9 +1,10 @@
 import { MainRouter } from './routers/MainRouter'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from './context/authContext'
-import './App.css'
 import { RecoilRoot } from 'recoil'
 import { Toaster } from 'sonner'
+import { AuthProvider } from './context/authContext'
+import { SocketProvider } from './context/socketContext'
+import './App.css'
 
 
 const queryClient = new QueryClient()
@@ -13,7 +14,9 @@ function App() {
     <RecoilRoot>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <MainRouter />
+          <SocketProvider>
+            <MainRouter />
+          </SocketProvider>
           <Toaster position='top-right' />
         </AuthProvider>
       </QueryClientProvider>
