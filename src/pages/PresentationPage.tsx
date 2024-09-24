@@ -4,6 +4,7 @@ import { PresentationNavbar } from '../components/presentation/PresentationNavba
 import { ConnectedUsersSidebar } from '../components/presentation/ConnectedUsersSidebar'
 import { SlidesSidebar } from '../components/presentation/SlidesSidebar'
 import { DrowToolsBar } from '../components/presentation/DrowToolsBar'
+import { PresentationEditor } from '../components/presentation/PresentationEditor'
 import { Loader } from '../components/shared/Loader'
 import { AuthContext } from '../context/authContext'
 import { SocketContext } from '../context/socketContext'
@@ -89,6 +90,10 @@ export const PresentationPage = () => {
     setSelectedTool(tool)
   }
 
+  const handleSubmitChange = () => {
+    setSelectedTool(null)
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <PresentationNavbar
@@ -109,18 +114,13 @@ export const PresentationPage = () => {
 
           <main className="flex-1 p-4 overflow-auto">
             {isEditor && (
-              <DrowToolsBar onSelectTool={handleSelectTool} />
+              <DrowToolsBar onSelectTool={handleSelectTool} toolValue={selectedTool} />
             )}
-            <div className="bg-white aspect-video shadow-lg p-8">
-              {currentSlide && (
-                <textarea
-                  value={currentSlide?.content}
-                  onChange={(e) => handleEditSlide(currentSlide._id, e.target.value)}
-                  className="w-full h-full resize-none border-none focus:outline-none focus:ring-0"
-                  placeholder="Enter your slide content here..."
-                />
-              )}
-            </div>
+            <PresentationEditor
+              currentSlide={currentSlide}
+              currentTool={selectedTool}
+              onSubmitChange={handleSubmitChange}
+            />
           </main>
 
           {isCreator && (
