@@ -44,7 +44,7 @@ export interface Creator {
 }
 
 export interface UserRoleData {
-  user: string
+  user: Creator
   role: string
   _id:  string
 }

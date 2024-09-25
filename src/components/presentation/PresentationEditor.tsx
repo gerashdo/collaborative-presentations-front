@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import { Stage, Layer, Text, Rect, Circle, Arrow } from 'react-konva'
-// import { v4 as uuidv4 } from 'uuid'
-import { Slide, SlideElementData, SlideElementRequest } from '../../interfaces/api';
-import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
-import { MarkdownTextInput } from './MarkdownTextInput'
 import { marked } from 'marked'
+import { MarkdownTextInput } from './MarkdownTextInput'
+import { Slide, SlideElementData, SlideElementRequest } from '../../interfaces/api'
+import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 
 
 interface PresentationEditorProps {

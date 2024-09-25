@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { useRecoilState } from "recoil"
 import { actualPresentationState } from "../state/actualPresentation"
+import { checkIfCreator, checkIfEditor, findCurrentSlide } from "../helpers/presentationState"
 import { GetPresentationData, Slide } from "../interfaces/api"
 import { LocalStorageUser } from "../interfaces/users"
-import { isUserEditor } from "../helpers/users"
 
 
 export const useActualPresentationState = (
@@ -16,37 +16,30 @@ export const useActualPresentationState = (
   const [isEditor, setIsEditor] = useState(false)
 
   useEffect(() => {
-    if (presentation) {
-      setActualPresentation(presentation)
+    if (presentation) setActualPresentation(presentation)
+    return () => setActualPresentation(null)
+  }, [presentation, setActualPresentation])
+
+  useEffect(() => {
+    if (actualPresentation) {
+      const updatedSlide = findCurrentSlide(actualPresentation.slides, currentSlide)
+      setCurrentSlide(updatedSlide)
     }
-  },[presentation, setActualPresentation])
+  }, [actualPresentation, currentSlide])
 
   useEffect(() => {
-    if (!actualPresentation) return
-    if (actualPresentation.slides.length === 0) return
-    setCurrentSlide(actualPresentation.slides[0])
-  }, [actualPresentation])
-
-  useEffect(() => {
-    if (!actualPresentation) return
-    if (!currentUser) return
-    if (actualPresentation.creator._id === currentUser._id) setIsCreator(true)
+    const isUserCreator = checkIfCreator(actualPresentation, currentUser)
+    setIsCreator(isUserCreator)
   }, [actualPresentation, currentUser])
 
   useEffect(() => {
-    if (!actualPresentation) return
-    if (!currentUser) return
-    if (isCreator) return setIsEditor(true)
-    const isEditor = isUserEditor(actualPresentation, currentUser)
-    setIsEditor(isEditor || false)
+    const isUserEditor = checkIfEditor(actualPresentation, currentUser, isCreator)
+    setIsEditor(isUserEditor)
   }, [actualPresentation, currentUser, isCreator])
 
   const handleSetCurrentSlide = (id: string) => {
-    if (!actualPresentation) return
-    const slide = actualPresentation.slides.find(slide => slide._id === id)
-    if (slide) {
-      setCurrentSlide(slide)
-    }
+    const slide = actualPresentation?.slides.find(slide => slide._id === id)
+    if (slide) setCurrentSlide(slide)
   }
 
   return {
