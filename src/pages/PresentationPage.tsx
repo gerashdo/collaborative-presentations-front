@@ -91,19 +91,19 @@ export const PresentationPage = () => {
   }
 
   const handleAddElementToSlide = (slideId: string, newElement: SlideElementRequest) => {
-    if (!actualPresentation) return
+    if (!actualPresentation || !isEditor) return
     console.log('Submit change:', slideId, newElement)
     addElementToSlide(actualPresentation._id, slideId, newElement)
     setSelectedTool(null)
   }
 
   const handleRemoveElementFromSlide = (slideId: string, elementId: string) => {
-    if (!actualPresentation) return
+    if (!actualPresentation || !isEditor) return
     removeElementFromSlide(actualPresentation._id, slideId, elementId)
   }
 
   const handleUpdateElementOnSlide = (slideId: string, elementId: string, newElement: SlideElementData) => {
-    if (!actualPresentation) return
+    if (!actualPresentation || !isEditor) return
     updateElementOnSlide(actualPresentation._id, slideId, elementId, newElement)
   }
 
@@ -132,6 +132,7 @@ export const PresentationPage = () => {
             <PresentationEditor
               currentSlide={currentSlide}
               currentTool={selectedTool}
+              isCurrentUserEditor={isEditor}
               onAddElement={handleAddElementToSlide}
               onRemoveElement={handleRemoveElementFromSlide}
               onEditSlideElement={handleUpdateElementOnSlide}

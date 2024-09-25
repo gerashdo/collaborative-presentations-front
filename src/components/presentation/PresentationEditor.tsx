@@ -9,6 +9,7 @@ import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 interface PresentationEditorProps {
   currentSlide: Slide | null
   currentTool: DROWING_TOOLS | null
+  isCurrentUserEditor: boolean
   onAddElement: (slideId: string, element: SlideElementRequest) => void
   onRemoveElement: (slideId: string, elementId: string) => void
   onEditSlideElement: (slideId: string, elementId: string, element: SlideElementData) => void
@@ -17,6 +18,7 @@ interface PresentationEditorProps {
 export const PresentationEditor = ({
   currentSlide,
   currentTool,
+  isCurrentUserEditor,
   onAddElement,
   onRemoveElement,
   onEditSlideElement,
@@ -152,7 +154,7 @@ export const PresentationEditor = ({
                   x={el.x}
                   y={el.y}
                   text={el.content || ''}
-                  draggable={el.draggable}
+                  draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
                   // onClick={() => handleTextClick(el)}
                   onDblClick={() => handleDeleteElement(el._id)}
@@ -167,7 +169,7 @@ export const PresentationEditor = ({
                   fill={el.color}
                   width={100}
                   height={100}
-                  draggable={el.draggable}
+                  draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
@@ -180,7 +182,7 @@ export const PresentationEditor = ({
                   y={el.y}
                   fill={el.color}
                   radius={50}
-                  draggable={el.draggable}
+                  draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
@@ -194,7 +196,7 @@ export const PresentationEditor = ({
                   points={[0, 0, 100, 100]} // just an example, customize it as needed
                   fill={el.color}
                   stroke={el.color}
-                  draggable={el.draggable}
+                  draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
