@@ -12,3 +12,9 @@ export enum SlideElementTypes {
   CIRCLE = 'circle',
   ARROW = 'arrow',
 }
+
+export enum SHAPE_COLORS {
+  RED = 'red',
+  BLUE = 'blue',
+  GREEN = 'green',
+}

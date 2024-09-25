@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Stage, Layer, Text, Rect, Circle, Arrow } from 'react-konva'
 import { MarkdownTextInput } from './MarkdownTextInput'
 import { useCanvasResize } from '../../hooks/useCanvasResize'
-import { convertMarkdownToHTML, createNewTextElement, editExistingElement } from '../../helpers/presentation'
+import { convertMarkdownToHTML, createNewTextElement, createShapeElement, editExistingElement } from '../../helpers/presentation'
 import { Slide, SlideElementData, SlideElementRequest } from '../../interfaces/api'
 import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 
@@ -38,29 +38,13 @@ export const PresentationEditor = ({
   }, [currentTool])
 
   useEffect(() => {
-    const handleAddShape = () => {
-      let newElement: SlideElementRequest | null = null
-      switch (currentTool) {
-        case DROWING_TOOLS.RECTANGLE:
-          newElement = {type: SlideElementTypes.RECT, x: 100, y: 100, draggable: true, color: 'red'}
-          break
-        case DROWING_TOOLS.CIRCLE:
-          newElement = {type: SlideElementTypes.CIRCLE, x: 150, y: 150, draggable: true, color: 'blue'}
-          break
-        case DROWING_TOOLS.ARROW:
-          newElement = {type: SlideElementTypes.ARROW, x: 200, y: 200, draggable: true, color: 'green'}
-          break
-        default:
-          break
-      }
-      if (!newElement) return
-      if (!currentSlide) return
-      console.log('Adding new element:', newElement, currentSlide._id)
-      onAddElement(currentSlide._id || '', newElement)
-    }
+    if (!currentTool || !currentSlide || currentTool === DROWING_TOOLS.TEXT) return
 
-    if (!currentTool || currentTool == DROWING_TOOLS.TEXT) return
-    handleAddShape()
+    const newElement = createShapeElement(currentTool)
+    if (!newElement) return
+
+    console.log('Adding new element:', newElement, currentSlide._id)
+    onAddElement(currentSlide._id, newElement)
   }, [currentTool, currentSlide, onAddElement])
 
   const handleSaveText = async (text: string) => {
@@ -111,7 +95,7 @@ export const PresentationEditor = ({
       <Stage width={canvasSize.width} height={canvasSize.height} scale={{ x: scale, y: scale }}>
         <Layer>
           {currentSlide?.elements.map((el) => {
-            if (el.type === 'text') {
+            if (el.type === SlideElementTypes.TEXT) {
               return (
                 <Text
                   key={el._id}
@@ -124,7 +108,7 @@ export const PresentationEditor = ({
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
               )
-            } else if (el.type === 'rect') {
+            } else if (el.type === SlideElementTypes.RECT) {
               return (
                 <Rect
                   key={el._id}
@@ -138,7 +122,7 @@ export const PresentationEditor = ({
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
               )
-            } else if (el.type === 'circle') {
+            } else if (el.type === SlideElementTypes.CIRCLE) {
               return (
                 <Circle
                   key={el._id}
@@ -151,7 +135,7 @@ export const PresentationEditor = ({
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
               )
-            } else if (el.type === 'arrow') {
+            } else if (el.type === SlideElementTypes.ARROW) {
               return (
                 <Arrow
                   key={el._id}
