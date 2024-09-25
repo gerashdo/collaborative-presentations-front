@@ -87,34 +87,31 @@ export const PresentationEditor = ({
   }, [currentTool, currentSlide, onAddElement])
 
   const handleSaveText = async (text: string) => {
+    if (!currentSlide) return
     const html = await marked(text)
-    // let newElement: SlideElementRequest
-    // if (editingElementId) {
-    //   newElement = {
-    //     id: editingElementId,
-    //     type: SlideElementTypes.TEXT,
-    //     originalText: text,
-    //     content: html,
-    //     x: 50,
-    //     y: 50,
-    //     draggable: true,
-    //   }
-    //   setIsEditingText(false)
-    //   setEditingElementId(null)
-    //   return
-    // }
-      // Add a new text element
+    if (isEditingText && editingElementId) {
+      const elementBeingEdited = currentSlide.elements.find((el) => el._id === editingElementId)
+      if (!elementBeingEdited) return
       const newElement = {
-      type: SlideElementTypes.TEXT,
-      originalText: text,
-      content: html,
-      x: 50,
-      y: 50,
-      draggable: true,
+        ...elementBeingEdited,
+        content: html,
+        originalText: text,
+      }
+      setIsEditingText(false)
+      setEditingElementId(null)
+      onEditSlideElement(currentSlide._id, editingElementId, newElement)
+    } else {
+      const newElement = {
+        type: SlideElementTypes.TEXT,
+        originalText: text,
+        content: html,
+        x: 50,
+        y: 50,
+        draggable: true,
+      }
+      onAddElement(currentSlide._id, newElement)
     }
     setText('')
-    if (!currentSlide) return
-    onAddElement(currentSlide._id, newElement)
   }
 
   const handleDragEnd = (element: SlideElementData, x: number, y: number) => {
@@ -156,7 +153,7 @@ export const PresentationEditor = ({
                   text={el.content || ''}
                   draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
-                  // onClick={() => handleTextClick(el)}
+                  onClick={() => handleTextClick(el)}
                   onDblClick={() => handleDeleteElement(el._id)}
                 />
               )
