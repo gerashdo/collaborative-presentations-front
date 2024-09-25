@@ -116,7 +116,7 @@ export const PresentationPage = () => {
       />
 
       { !isLoading && !isError && actualPresentation && (
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden justify-between">
           <SlidesSidebar
             slides={actualPresentation.slides}
             currentSlide={currentSlide}
@@ -124,20 +124,21 @@ export const PresentationPage = () => {
             isCreator={isCreator}
             onDeleteSlide={handleDeleteSlide}
           />
-
-          <main className="flex-1 p-4 overflow-auto">
-            {isEditor && (
-              <DrowToolsBar onSelectTool={handleSelectTool} toolValue={selectedTool} />
-            )}
-            <PresentationEditor
-              currentSlide={currentSlide}
-              currentTool={selectedTool}
-              isCurrentUserEditor={isEditor}
-              onAddElement={handleAddElementToSlide}
-              onRemoveElement={handleRemoveElementFromSlide}
-              onEditSlideElement={handleUpdateElementOnSlide}
-            />
-          </main>
+          {currentSlide && (
+            <main className="flex-1 p-4 overflow-auto">
+              {isEditor && (
+                <DrowToolsBar onSelectTool={handleSelectTool} toolValue={selectedTool} />
+              )}
+              <PresentationEditor
+                currentSlide={currentSlide}
+                currentTool={selectedTool}
+                isCurrentUserEditor={isEditor}
+                onAddElement={handleAddElementToSlide}
+                onRemoveElement={handleRemoveElementFromSlide}
+                onEditSlideElement={handleUpdateElementOnSlide}
+              />
+            </main>
+          )}
 
           {isCreator && (
             <ConnectedUsersSidebar

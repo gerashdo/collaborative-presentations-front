@@ -8,7 +8,7 @@ import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 
 
 interface PresentationEditorProps {
-  currentSlide: Slide | null
+  currentSlide: Slide
   currentTool: DROWING_TOOLS | null
   isCurrentUserEditor: boolean
   onAddElement: (slideId: string, element: SlideElementRequest) => void
@@ -38,7 +38,7 @@ export const PresentationEditor = ({
   }, [currentTool])
 
   useEffect(() => {
-    if (!currentTool || !currentSlide || currentTool === DROWING_TOOLS.TEXT) return
+    if (!currentTool || currentTool === DROWING_TOOLS.TEXT) return
 
     const newElement = createShapeElement(currentTool)
     if (!newElement) return
@@ -48,7 +48,6 @@ export const PresentationEditor = ({
   }, [currentTool, currentSlide, onAddElement])
 
   const handleSaveText = async (text: string) => {
-    if (!currentSlide) return
     const html = await convertMarkdownToHTML(text)
 
     if (isEditingText && editingElementId) {
@@ -67,13 +66,11 @@ export const PresentationEditor = ({
 
   const handleDragEnd = (element: SlideElementData, x: number, y: number) => {
     console.log('Drag end:', element._id, x, y)
-    if (!currentSlide) return
     const updatedElement = { ...element, x, y }
     onEditSlideElement(currentSlide._id, element._id, updatedElement)
   }
 
   const handleDeleteElement = (id: string) => {
-    if (!currentSlide) return
     onRemoveElement(currentSlide._id, id)
     console.log('Delete element:', id)
     setIsEditingText(false)
@@ -94,7 +91,7 @@ export const PresentationEditor = ({
       )}
       <Stage width={canvasSize.width} height={canvasSize.height} scale={{ x: scale, y: scale }}>
         <Layer>
-          {currentSlide?.elements.map((el) => {
+          {currentSlide.elements.map((el) => {
             if (el.type === SlideElementTypes.TEXT) {
               return (
                 <Text
