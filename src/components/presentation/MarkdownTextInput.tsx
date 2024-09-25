@@ -2,11 +2,12 @@ import { useState } from "react"
 import { Button } from "../shared/Button"
 
 interface MarkdownTextInputProps {
-  onSubmitText: (text: string) => void;
+  onSubmitText: (text: string) => void
+  initialText?: string
 }
 
-export const MarkdownTextInput = ({onSubmitText}: MarkdownTextInputProps) => {
-  const [newText, setNewText] = useState<string>('')
+export const MarkdownTextInput = ({onSubmitText, initialText}: MarkdownTextInputProps) => {
+  const [newText, setNewText] = useState<string>(initialText ||'')
 
   const handleOnInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
     const target = e.target as HTMLTextAreaElement

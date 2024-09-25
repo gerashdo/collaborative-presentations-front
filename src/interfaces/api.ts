@@ -1,3 +1,4 @@
+import { SlideElementTypes } from "../constants/presetation";
 
 export interface PostPresentationRequest {
   title: string
@@ -12,7 +13,7 @@ export interface PresentationDataResponse {
   title:       string;
   description: string;
   slides:      string[];
-  users:       User[];
+  users:       UserRoleData[];
   creator:     string;
   _id:         string;
   createdAt:   Date;
@@ -29,7 +30,7 @@ export interface GetPresentationsData {
   title:       string
   description: string
   slides:      string[]
-  users:       User[]
+  users:       UserRoleData[]
   creator:     Creator
   createdAt:   Date
   updatedAt:   Date
@@ -42,7 +43,7 @@ export interface Creator {
   updatedAt: Date;
 }
 
-export interface User {
+export interface UserRoleData {
   user: string
   role: string
   _id:  string
@@ -56,30 +57,53 @@ export interface GetPresentationsMetaData {
 }
 
 export interface GetPresentationResponse {
-  data: GetPresentationData;
+  data: GetPresentationData
 }
 
 export interface GetPresentationData {
-  _id:         string;
-  title:       string;
-  description: string;
-  slides:      Slide[];
-  users:       UserRoleData[];
-  creator:     Creator;
-  createdAt:   Date;
-  updatedAt:   Date;
+  _id:       string
+  title:     string
+  slides:    Slide[]
+  users:     UserRoleData[]
+  creator:   Creator
+  createdAt: Date
+  updatedAt: Date
 }
 
-export interface Slide {
+export interface Creator {
   _id:       string;
-  content:   string;
-  elements:  any[];
+  nickname:  string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface UserRoleData{
-  user: Creator;
-  role: string;
-  _id:  string;
+export interface Slide {
+  _id:       string
+  content:   string
+  elements:  SlideElementData[]
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface SlideElementData {
+  _id:       string
+  type:      string
+  x:         number
+  y:         number
+  draggable: boolean
+  color?:     string
+  createdAt: Date
+  updatedAt: Date
+  content?: string
+  originalText?: string
+}
+
+export interface SlideElementRequest {
+  x:         number
+  y:         number
+  type: SlideElementTypes
+  content?: string
+  originalText?: string
+  draggable: boolean
+  color?: string
 }

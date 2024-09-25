@@ -1,38 +1,33 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { Stage, Layer, Image } from 'react-konva'
-import { KonvaEventObject, Node, NodeConfig } from 'konva/lib/Node'
-import { v4 as uuidv4 } from 'uuid'
-import { Slide } from '../../interfaces/api'
-import html2canvas from 'html2canvas'
-import { marked } from 'marked'
-import { DROWING_TOOLS } from '../../constants/presetation'
+import { useEffect, useState, useRef } from 'react'
+import { Stage, Layer, Text, Rect, Circle, Arrow } from 'react-konva'
+// import { v4 as uuidv4 } from 'uuid'
+import { Slide, SlideElementData, SlideElementRequest } from '../../interfaces/api';
+import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 import { MarkdownTextInput } from './MarkdownTextInput'
+import { marked } from 'marked'
 
 
 interface PresentationEditorProps {
   currentSlide: Slide | null
   currentTool: DROWING_TOOLS | null
-  onSubmitChange: () => void
+  onAddElement: (slideId: string, element: SlideElementRequest) => void
+  onRemoveElement: (slideId: string, elementId: string) => void
+  onEditSlideElement: (slideId: string, elementId: string, element: SlideElementData) => void
 }
 
-interface Element {
-  id: string
-  image: HTMLImageElement
-  x: number
-  y: number
-  draggable: boolean
-}
-
-export const PresentationEditor: React.FC<PresentationEditorProps> = ({
+export const PresentationEditor = ({
   currentSlide,
   currentTool,
-  onSubmitChange,
-}) => {
+  onAddElement,
+  onRemoveElement,
+  onEditSlideElement,
+}: PresentationEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
   const [scale, setScale] = useState(1)
-  const [elements, setElements] = useState<Element[]>([])
   const [isEditingText, setIsEditingText] = useState(false)
+  const [text, setText] = useState<string>('')
+  const [editingElementId, setEditingElementId] = useState<string | null>(null)
 
   const handleResize = () => {
     const container = containerRef.current
@@ -54,10 +49,7 @@ export const PresentationEditor: React.FC<PresentationEditorProps> = ({
   useEffect(() => {
     handleResize()
     window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   useEffect(() => {
@@ -67,65 +59,150 @@ export const PresentationEditor: React.FC<PresentationEditorProps> = ({
     setIsEditingText(true)
   }, [currentTool])
 
-  const handleSaveText = async (text: string) => {
-    const tempDiv = document.createElement("div")
-    tempDiv.className = "prose p-4"
-    const html = await marked(text)
-    document.body.appendChild(tempDiv)
-    tempDiv.innerHTML = html
-
-    try {
-      setTimeout(async () => {
-        const canvas = await html2canvas(tempDiv, {
-          backgroundColor: "rgba(0, 0, 0, 0)",
-        })
-
-        const imageElement = new window.Image()
-        imageElement.src = canvas.toDataURL()
-        const newElement = {
-          id: uuidv4(),
-          image: imageElement,
-          x: 50,
-          y: 50,
-          draggable: true,
-        }
-        setElements([...elements, newElement])
-        document.body.removeChild(tempDiv)
-      }, 100)
-    } catch (error) {
-      console.log({ error })
+  useEffect(() => {
+    const handleAddShape = () => {
+      let newElement: SlideElementRequest | null = null
+      switch (currentTool) {
+        case DROWING_TOOLS.RECTANGLE:
+          newElement = {type: SlideElementTypes.RECT, x: 100, y: 100, draggable: true, color: 'red'}
+          break
+        case DROWING_TOOLS.CIRCLE:
+          newElement = {type: SlideElementTypes.CIRCLE, x: 150, y: 150, draggable: true, color: 'blue'}
+          break
+        case DROWING_TOOLS.ARROW:
+          newElement = {type: SlideElementTypes.ARROW, x: 200, y: 200, draggable: true, color: 'green'}
+          break
+        default:
+          break
+      }
+      if (!newElement) return
+      if (!currentSlide) return
+      console.log('Adding new element:', newElement, currentSlide._id)
+      onAddElement(currentSlide._id || '', newElement)
     }
-    setIsEditingText(false)
-    onSubmitChange()
+
+    if (!currentTool || currentTool == DROWING_TOOLS.TEXT) return
+    handleAddShape()
+  }, [currentTool, currentSlide, onAddElement])
+
+  const handleSaveText = async (text: string) => {
+    const html = await marked(text)
+    // let newElement: SlideElementRequest
+    // if (editingElementId) {
+    //   newElement = {
+    //     id: editingElementId,
+    //     type: SlideElementTypes.TEXT,
+    //     originalText: text,
+    //     content: html,
+    //     x: 50,
+    //     y: 50,
+    //     draggable: true,
+    //   }
+    //   setIsEditingText(false)
+    //   setEditingElementId(null)
+    //   return
+    // }
+      // Add a new text element
+      const newElement = {
+      type: SlideElementTypes.TEXT,
+      originalText: text,
+      content: html,
+      x: 50,
+      y: 50,
+      draggable: true,
+    }
+    setText('')
+    if (!currentSlide) return
+    onAddElement(currentSlide._id, newElement)
   }
 
-  const handleDragEnd = (e: KonvaEventObject<DragEvent, Node<NodeConfig>>, id: string) => {
-    const { x, y } = e.target.position()
-    const updatedElements = elements.map((el) =>
-      el.id === id ? { ...el, x, y } : el
-    )
-    setElements(updatedElements)
+  const handleDragEnd = (element: SlideElementData, x: number, y: number) => {
+    console.log('Drag end:', element._id, x, y)
+    if (!currentSlide) return
+    const updatedElement = { ...element, x, y }
+    onEditSlideElement(currentSlide._id, element._id, updatedElement)
+  }
+
+  const handleDeleteElement = (id: string) => {
+    if (!currentSlide) return
+    onRemoveElement(currentSlide._id, id)
+    console.log('Delete element:', id)
+    setIsEditingText(false)
+    setEditingElementId(null)
+    setText('')
+  }
+
+  const handleTextClick = (el: SlideElementData) => {
+    setText(el.originalText || '')
+    setEditingElementId(el._id)
+    setIsEditingText(true)
   }
 
   return (
     <div ref={containerRef} className="bg-white aspect-video shadow-lg relative overflow-hidden">
-      {isEditingText && <MarkdownTextInput onSubmitText={handleSaveText} />}
-      <Stage
-        width={canvasSize.width}
-        height={canvasSize.height}
-        scale={{ x: scale, y: scale }}
-      >
+      {isEditingText && (
+        <MarkdownTextInput onSubmitText={handleSaveText} initialText={text} />
+      )}
+      <Stage width={canvasSize.width} height={canvasSize.height} scale={{ x: scale, y: scale }}>
         <Layer>
-          {elements.map((element) => (
-            <Image
-              key={element.id}
-              x={element.x}
-              y={element.y}
-              image={element.image}
-              draggable={element.draggable}
-              onDragEnd={(e) => handleDragEnd(e, element.id)}
-            />
-          ))}
+          {currentSlide?.elements.map((el) => {
+            if (el.type === 'text') {
+              return (
+                <Text
+                  key={el._id}
+                  x={el.x}
+                  y={el.y}
+                  text={el.content || ''}
+                  draggable={el.draggable}
+                  onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
+                  // onClick={() => handleTextClick(el)}
+                  onDblClick={() => handleDeleteElement(el._id)}
+                />
+              )
+            } else if (el.type === 'rect') {
+              return (
+                <Rect
+                  key={el._id}
+                  x={el.x}
+                  y={el.y}
+                  fill={el.color}
+                  width={100}
+                  height={100}
+                  draggable={el.draggable}
+                  onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
+                  onDblClick={() => handleDeleteElement(el._id)}
+                />
+              )
+            } else if (el.type === 'circle') {
+              return (
+                <Circle
+                  key={el._id}
+                  x={el.x}
+                  y={el.y}
+                  fill={el.color}
+                  radius={50}
+                  draggable={el.draggable}
+                  onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
+                  onDblClick={() => handleDeleteElement(el._id)}
+                />
+              )
+            } else if (el.type === 'arrow') {
+              return (
+                <Arrow
+                  key={el._id}
+                  x={el.x}
+                  y={el.y}
+                  points={[0, 0, 100, 100]} // just an example, customize it as needed
+                  fill={el.color}
+                  stroke={el.color}
+                  draggable={el.draggable}
+                  onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
+                  onDblClick={() => handleDeleteElement(el._id)}
+                />
+              )
+            }
+            return null
+          })}
         </Layer>
       </Stage>
     </div>

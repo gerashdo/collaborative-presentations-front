@@ -12,6 +12,7 @@ import { useGetPresentation } from '../hooks/useGetPresentation'
 import { useActualPresentationState } from '../hooks/useActualPresentationState'
 import { useDisplayToastMessage } from '../hooks/useDisplayToast'
 import { UserRole } from '../interfaces/users'
+import { SlideElementData, SlideElementRequest } from '../interfaces/api'
 import { ROUTES } from '../constants/routes'
 import { DROWING_TOOLS } from '../constants/presetation'
 
@@ -37,6 +38,9 @@ export const PresentationPage = () => {
     updateUserRole,
     addNewSlide,
     removeSlideFromPresentation,
+    addElementToSlide,
+    removeElementFromSlide,
+    updateElementOnSlide,
   } = useContext(SocketContext)
   const [selectedTool, setSelectedTool] = useState<DROWING_TOOLS | null>(null)
   const {displayMessage} = useDisplayToastMessage()
@@ -52,7 +56,7 @@ export const PresentationPage = () => {
         leavePresentation(id, currentUser._id)
       }
     }
-  }, [])
+  }, []) // eslint-disable-line
 
   if (isLoading) {
     return <Loader/>
@@ -72,10 +76,6 @@ export const PresentationPage = () => {
     removeSlideFromPresentation(actualPresentation._id, id)
   }
 
-  const handleEditSlide = (id: string, content: string) => {
-    console.log('edit slide', id, content)
-  }
-
   const handleChangeUserRole = (userId: string, newRole: UserRole) => {
     console.log('Change user role:', userId, newRole)
     if (!actualPresentation) return
@@ -90,8 +90,21 @@ export const PresentationPage = () => {
     setSelectedTool(tool)
   }
 
-  const handleSubmitChange = () => {
+  const handleAddElementToSlide = (slideId: string, newElement: SlideElementRequest) => {
+    if (!actualPresentation) return
+    console.log('Submit change:', slideId, newElement)
+    addElementToSlide(actualPresentation._id, slideId, newElement)
     setSelectedTool(null)
+  }
+
+  const handleRemoveElementFromSlide = (slideId: string, elementId: string) => {
+    if (!actualPresentation) return
+    removeElementFromSlide(actualPresentation._id, slideId, elementId)
+  }
+
+  const handleUpdateElementOnSlide = (slideId: string, elementId: string, newElement: SlideElementData) => {
+    if (!actualPresentation) return
+    updateElementOnSlide(actualPresentation._id, slideId, elementId, newElement)
   }
 
   return (
@@ -119,7 +132,9 @@ export const PresentationPage = () => {
             <PresentationEditor
               currentSlide={currentSlide}
               currentTool={selectedTool}
-              onSubmitChange={handleSubmitChange}
+              onAddElement={handleAddElementToSlide}
+              onRemoveElement={handleRemoveElementFromSlide}
+              onEditSlideElement={handleUpdateElementOnSlide}
             />
           </main>
 

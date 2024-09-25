@@ -5,3 +5,10 @@ export enum DROWING_TOOLS {
   CIRCLE = 'circle',
   ARROW = 'arrow',
 }
+
+export enum SlideElementTypes {
+  TEXT = 'text',
+  RECT = 'rect',
+  CIRCLE = 'circle',
+  ARROW = 'arrow',
+}
