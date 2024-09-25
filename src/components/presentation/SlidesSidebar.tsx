@@ -18,16 +18,16 @@ export const SlidesSidebar = ({
   onDeleteSlide,
 }: SlidesSidebarProps) => {
   return (
-    <section className="w-64 bg-gray-200 p-4 overflow-y-auto">
+    <section className="w-60 p-4 overflow-y-auto">
       {slides.map((slide, index) => (
         <div
           key={slide._id}
-          className={`p-2 mb-2 bg-white rounded cursor-pointer ${
+          className={`p-2 mb-3 bg-white rounded cursor-pointer ${
             slide._id === currentSlide?._id ? 'ring-2 ring-indigo-500' : ''
           }`}
           onClick={() => onSetCurrentSlide(slide._id)}
         >
-          <p className="font-bold">Slide {index + 1}</p>
+          <p className="font-semibold text-gray-600">Slide {index + 1}</p>
           {isCreator && (
             <div className="flex flex-row-reverse">
               <SmallButtonIcon

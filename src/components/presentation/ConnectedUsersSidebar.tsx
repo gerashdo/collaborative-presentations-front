@@ -37,14 +37,14 @@ export const ConnectedUsersSidebar = ({
   }
 
   return (
-    <div className="w-64 bg-gray-200 p-4 overflow-y-auto">
-      <h3 className="font-bold mb-4 flex gap-2 items-center justify-center">
+    <div className="w-60 p-4 overflow-y-auto">
+      <h3 className="font-semibold text-gray-600 mb-4 flex gap-2 items-center justify-center">
         <Icon icon="zmdi:accounts" />
         Connected Users
       </h3>
       {users.map((user) => (
         <div key={user._id} className="flex items-center justify-between mb-2 relative">
-          <span>{user.user.nickname}</span>
+          <span className="text-gray-600">{user.user.nickname}</span>
           <SmallButtonIcon
             onClick={() => setSelectedUser(selectedUser?._id === user._id ? null : user)}
             icon={user.role === UserRole.EDITOR ? "mdi:rename" : "mdi:eye"}

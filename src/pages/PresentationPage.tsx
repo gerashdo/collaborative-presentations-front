@@ -111,6 +111,7 @@ export const PresentationPage = () => {
     <div className="flex flex-col h-screen bg-gray-100">
       <PresentationNavbar
         isCreator={isCreator}
+        presentationName={actualPresentation?.title}
         handleBack={handleBack}
         handleAddSlide={handleAddSlide}
       />
