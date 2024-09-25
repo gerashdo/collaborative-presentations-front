@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { Stage, Layer, Text, Rect, Circle, Arrow } from 'react-konva'
-import { marked } from 'marked'
 import { MarkdownTextInput } from './MarkdownTextInput'
+import { useCanvasResize } from '../../hooks/useCanvasResize'
+import { convertMarkdownToHTML, createNewTextElement, editExistingElement } from '../../helpers/presentation'
 import { Slide, SlideElementData, SlideElementRequest } from '../../interfaces/api'
 import { DROWING_TOOLS, SlideElementTypes } from '../../constants/presetation'
 
@@ -24,34 +25,10 @@ export const PresentationEditor = ({
   onEditSlideElement,
 }: PresentationEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
-  const [scale, setScale] = useState(1)
+  const {canvasSize, scale} = useCanvasResize(containerRef)
   const [isEditingText, setIsEditingText] = useState(false)
   const [text, setText] = useState<string>('')
   const [editingElementId, setEditingElementId] = useState<string | null>(null)
-
-  const handleResize = () => {
-    const container = containerRef.current
-    if (!container) return
-    const containerWidth = container.offsetWidth
-    const containerHeight = container.offsetHeight
-    const baseWidth = 1280
-    const baseHeight = 720
-    const scaleWidth = containerWidth / baseWidth
-    const scaleHeight = containerHeight / baseHeight
-    const newScale = Math.min(scaleWidth, scaleHeight)
-    setScale(newScale)
-    setCanvasSize({
-      width: baseWidth * newScale,
-      height: baseHeight * newScale,
-    })
-  }
-
-  useEffect(() => {
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   useEffect(() => {
     if (currentTool !== DROWING_TOOLS.TEXT) {
@@ -88,29 +65,19 @@ export const PresentationEditor = ({
 
   const handleSaveText = async (text: string) => {
     if (!currentSlide) return
-    const html = await marked(text)
+    const html = await convertMarkdownToHTML(text)
+
     if (isEditingText && editingElementId) {
-      const elementBeingEdited = currentSlide.elements.find((el) => el._id === editingElementId)
-      if (!elementBeingEdited) return
-      const newElement = {
-        ...elementBeingEdited,
-        content: html,
-        originalText: text,
-      }
-      setIsEditingText(false)
-      setEditingElementId(null)
-      onEditSlideElement(currentSlide._id, editingElementId, newElement)
+      const updatedElement = editExistingElement(currentSlide, editingElementId, text, html)
+      if (!updatedElement) return
+      onEditSlideElement(currentSlide._id, editingElementId, updatedElement)
     } else {
-      const newElement = {
-        type: SlideElementTypes.TEXT,
-        originalText: text,
-        content: html,
-        x: 50,
-        y: 50,
-        draggable: true,
-      }
+      const newElement = createNewTextElement(text, html)
       onAddElement(currentSlide._id, newElement)
     }
+
+    setIsEditingText(false)
+    setEditingElementId(null)
     setText('')
   }
 
@@ -190,7 +157,7 @@ export const PresentationEditor = ({
                   key={el._id}
                   x={el.x}
                   y={el.y}
-                  points={[0, 0, 100, 100]} // just an example, customize it as needed
+                  points={[0, 0, 100, 100]}
                   fill={el.color}
                   stroke={el.color}
                   draggable={isCurrentUserEditor ? el.draggable : false}
