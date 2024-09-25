@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react'
+import { useContext } from 'react'
 import { useLocation } from 'wouter'
 import { Icon } from '@iconify/react'
 import { Button } from '../components/shared/Button'
@@ -13,16 +13,17 @@ import { useGetPresentations } from '../hooks/useGetPresentations'
 import { useModal } from '../hooks/useModal'
 import { useCreatePresentation } from '../hooks/useCreatePresentation'
 import { getPresentationRoute } from '../helpers/getRoutes'
+import { useUiPresentationsState } from '../hooks/useUiPresentationsState'
 
 
 export const PresentationsListPage = () => {
   const {user, logoutAction} = useContext(AuthContext)
   const [, setLocation] = useLocation()
-  const [currentPage, setCurrentPage] = useState(1)
+  const {currentPage, setCurrentPage} = useUiPresentationsState()
   const {isModalOpen, openModal, closeModal} = useModal()
   const {createPresentation} = useCreatePresentation()
   const itemsPerPage = 10
-  const {data, isError, isLoading} = useGetPresentations(currentPage, itemsPerPage)
+  const {data, isError, isLoading} = useGetPresentations(Number(currentPage), itemsPerPage)
   const totalPages = data?.meta.totalPages || 1
 
   const handleCreatePresentation = () => {
@@ -40,11 +41,11 @@ export const PresentationsListPage = () => {
   }
 
   const onNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+    setCurrentPage((Number(currentPage) + 1, totalPages).toString())
   }
 
   const onPreviousPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1))
+    setCurrentPage((Math.max(Number(currentPage) - 1, 1)).toString())
   }
 
   return (
@@ -76,7 +77,7 @@ export const PresentationsListPage = () => {
                     ))}
                 </ul>
                 <Pagination
-                  currentPage={currentPage}
+                  currentPage={Number(currentPage)}
                   totalPages={totalPages}
                   onNextPage={onNextPage}
                   onPreviousPage={onPreviousPage}
