@@ -36,13 +36,10 @@ export const ConnectedUsersSidebar = ({
     setSelectedUser(null)
   }
 
-  return (
-    <div className="w-60 p-4 overflow-y-auto">
-      <h3 className="font-semibold text-gray-600 mb-4 flex gap-2 items-center justify-center">
-        <Icon icon="zmdi:accounts" />
-        Connected Users
-      </h3>
-      {users.map((user) => (
+  const renderUsers = () => {
+    return users.map((user) => {
+      if (!user.isConnected) return null
+      return (
         <div key={user._id} className="flex items-center justify-between mb-2 relative">
           <span className="text-gray-600">{user.user.nickname}</span>
           <SmallButtonIcon
@@ -63,7 +60,17 @@ export const ConnectedUsersSidebar = ({
             </div>
           )}
         </div>
-      ))}
+      )
+    })
+  }
+
+  return (
+    <div className="w-60 p-4 overflow-y-auto">
+      <h3 className="font-semibold text-gray-600 mb-4 flex gap-2 items-center justify-center">
+        <Icon icon="zmdi:accounts" />
+        Connected Users
+      </h3>
+      {renderUsers()}
     </div>
   )
 }

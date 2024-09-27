@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Stage, Layer, Text, Rect, Circle, Arrow } from 'react-konva'
+import html2canvas from 'html2canvas'
+import { Stage, Layer, Rect, Circle, Arrow, Image } from 'react-konva'
 import { MarkdownTextInput } from './MarkdownTextInput'
 import { useCanvasResize } from '../../hooks/useCanvasResize'
 import { convertMarkdownToHTML, createNewTextElement, createShapeElement, editExistingElement } from '../../helpers/presentation'
@@ -14,6 +15,7 @@ interface PresentationEditorProps {
   onAddElement: (slideId: string, element: SlideElementRequest) => void
   onRemoveElement: (slideId: string, elementId: string) => void
   onEditSlideElement: (slideId: string, elementId: string, element: SlideElementData) => void
+  onCancelText?: () => void
 }
 
 export const PresentationEditor = ({
@@ -23,12 +25,16 @@ export const PresentationEditor = ({
   onAddElement,
   onRemoveElement,
   onEditSlideElement,
+  onCancelText,
 }: PresentationEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const {canvasSize, scale} = useCanvasResize(containerRef)
   const [isEditingText, setIsEditingText] = useState(false)
   const [text, setText] = useState<string>('')
   const [editingElementId, setEditingElementId] = useState<string | null>(null)
+
+  const [images, setImages] = useState<Record<string, HTMLImageElement | null>>({}) // Store images for each text element
+  const hiddenDivRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (currentTool !== DROWING_TOOLS.TEXT) {
@@ -47,6 +53,12 @@ export const PresentationEditor = ({
     onAddElement(currentSlide._id, newElement)
   }, [currentTool, currentSlide, onAddElement])
 
+  useEffect(() => {
+    currentSlide.elements
+      .filter((el) => el.type === SlideElementTypes.TEXT)
+      .forEach(renderTextElementAsImage)
+  }, [currentSlide.elements])
+
   const handleSaveText = async (text: string) => {
     const html = await convertMarkdownToHTML(text)
 
@@ -59,9 +71,14 @@ export const PresentationEditor = ({
       onAddElement(currentSlide._id, newElement)
     }
 
+    handleCancelText()
+  }
+
+  const handleCancelText = () => {
     setIsEditingText(false)
     setEditingElementId(null)
     setText('')
+    if (onCancelText) onCancelText()
   }
 
   const handleDragEnd = (element: SlideElementData, x: number, y: number) => {
@@ -73,9 +90,7 @@ export const PresentationEditor = ({
   const handleDeleteElement = (id: string) => {
     onRemoveElement(currentSlide._id, id)
     console.log('Delete element:', id)
-    setIsEditingText(false)
-    setEditingElementId(null)
-    setText('')
+    handleCancelText()
   }
 
   const handleTextClick = (el: SlideElementData) => {
@@ -84,21 +99,45 @@ export const PresentationEditor = ({
     setIsEditingText(true)
   }
 
+  const renderTextElementAsImage = async (element: SlideElementData) => {
+    if (hiddenDivRef.current) {
+      hiddenDivRef.current.innerHTML = element.content || ''
+      const canvas = await html2canvas(hiddenDivRef.current, {
+        backgroundColor: 'rgba(0,0,0,0)',
+      })
+      const img = new window.Image()
+      img.src = canvas.toDataURL()
+      setImages((prevImages) => ({
+        ...prevImages,
+        [element._id]: img,
+      }))
+      hiddenDivRef.current.innerHTML = ''
+    }
+  }
+
   return (
     <div ref={containerRef} className="bg-white aspect-video shadow-lg relative overflow-hidden">
       {isEditingText && (
-        <MarkdownTextInput onSubmitText={handleSaveText} initialText={text} />
+        <MarkdownTextInput onSubmitText={handleSaveText} initialText={text} onCancel={handleCancelText} />
       )}
+
+      {/* Hidden div for html2canvas rendering */}
+      <div
+        ref={hiddenDivRef}
+        className='prose p-4 text-xs'
+        style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}
+      />
+
       <Stage width={canvasSize.width} height={canvasSize.height} scale={{ x: scale, y: scale }}>
         <Layer>
           {currentSlide.elements.map((el) => {
-            if (el.type === SlideElementTypes.TEXT) {
+            if (el.type === SlideElementTypes.TEXT && images[el._id]) {
               return (
-                <Text
+                <Image
                   key={el._id}
                   x={el.x}
                   y={el.y}
-                  text={el.content || ''}
+                  image={images[el._id] || undefined} // Render the generated image
                   draggable={isCurrentUserEditor ? el.draggable : false}
                   onDragEnd={(e) => handleDragEnd(el, e.target.x(), e.target.y())}
                   onClick={() => handleTextClick(el)}

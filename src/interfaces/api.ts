@@ -47,6 +47,7 @@ export interface UserRoleData {
   user: Creator
   role: string
   _id:  string
+  isConnected: boolean
 }
 
 export interface GetPresentationsMetaData {

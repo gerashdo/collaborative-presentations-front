@@ -107,6 +107,10 @@ export const PresentationPage = () => {
     updateElementOnSlide(actualPresentation._id, slideId, elementId, newElement)
   }
 
+  const handleCancelText = () => {
+    setSelectedTool(null)
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <PresentationNavbar
@@ -137,6 +141,7 @@ export const PresentationPage = () => {
                 onAddElement={handleAddElementToSlide}
                 onRemoveElement={handleRemoveElementFromSlide}
                 onEditSlideElement={handleUpdateElementOnSlide}
+                onCancelText={handleCancelText}
               />
             </main>
           )}
